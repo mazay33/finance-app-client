@@ -7,8 +7,21 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/app": ["src/app/*"],
-      "@/assets": ["src/assets/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/app/*": [
+        "src/app/*"
+      ],
+      "@/assets/*": [
+        "src/assets/*"
+      ],
+      "@/modules/*": [
+        "src/modules/*"
+      ],
+      "@modules/auth": [
+        "src/modules/auth/index.ts"
+      ]
     },
     "resolveJsonModule": true,
     "types": [
@@ -27,6 +40,8 @@
   "exclude": [
     "dist",
     "node_modules",
-    "eslint.config.js"
+    "eslint.config.js",
+    "postcss.config.js",
+    "tailwind.config.js"
   ]
 }
