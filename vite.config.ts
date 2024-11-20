@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 
 import path from 'node:path'
+import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import Vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
@@ -13,6 +14,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
+      '@/app': `${path.resolve(__dirname, 'src/app')}/`,
+      '@/assets': `${path.resolve(__dirname, 'src/assets')}/`,
+      '@/modules': `${path.resolve(__dirname, 'src/modules')}/`,
     },
   },
   plugins: [
@@ -30,10 +34,21 @@ export default defineConfig({
     }),
 
     // https://github.com/posva/unplugin-vue-router
-    VueRouter(),
+    VueRouter({
+      routesFolder: [
+        {
+          src: 'src/app/pages',
+          path: '',
+        },
+      ],
+    }),
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
+      eslintrc: {
+        enabled: true,
+        filepath: './.eslintrc-auto-import.json',
+      },
       imports: [
         'vue',
         '@vueuse/core',
@@ -46,6 +61,8 @@ export default defineConfig({
       dts: true,
       dirs: [
         './src/app/composables',
+        './src/modules/**/composables',
+        './src/modules/**/**/composables',
       ],
       vueTemplate: true,
     }),
@@ -53,6 +70,19 @@ export default defineConfig({
     // https://github.com/antfu/vite-plugin-components
     Components({
       dts: true,
+      resolvers: [
+        PrimeVueResolver(),
+      ],
+      dirs: [
+        './src/app/components',
+        './src/modules/**/components',
+        './src/modules/**/views',
+        './src/modules/**/widgets',
+        './src/modules/**/**/components',
+        './src/modules/**/**/views',
+        './src/modules/**/**/widgets',
+
+      ],
     }),
 
   ],
