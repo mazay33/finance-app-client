@@ -5,7 +5,6 @@ import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import Vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import VueMacros from 'unplugin-vue-macros/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
 import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
@@ -20,18 +19,19 @@ export default defineConfig({
     },
   },
   plugins: [
-    VueMacros({
-      defineOptions: false,
-      defineModels: false,
-      plugins: {
-        vue: Vue({
-          script: {
-            propsDestructure: true,
-            defineModel: true,
-          },
-        }),
-      },
-    }),
+    Vue(),
+    // VueMacros({
+    //   defineOptions: false,
+    //   defineModels: false,
+    //   plugins: {
+    //     vue: Vue({
+    //       script: {
+    //         propsDestructure: true,
+    //         defineModel: true,
+    //       },
+    //     }),
+    //   },
+    // }),
 
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
@@ -39,6 +39,10 @@ export default defineConfig({
         {
           src: 'src/app/pages',
           path: '',
+        },
+        {
+          src: 'src/modules/auth/pages',
+          path: 'auth/',
         },
       ],
     }),
