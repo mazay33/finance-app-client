@@ -1,29 +1,107 @@
 <script setup lang="ts">
+import { useForm } from 'vee-validate'
+import { object, string } from 'yup'
+import { useAuthStore } from '../store'
 
+const authStore = useAuthStore()
+
+const isLoading = ref(false)
+
+const { errors, defineField, validate, setTouched } = useForm({
+
+  validationSchema: object({
+    email: string().email('Некорректная почта').required('Поле обязательно для заполнения'),
+    password: string().required('Поле обязательно для заполнения').min(4, 'Минимальная длина пароля 4 символов'),
+  }),
+})
+
+setTouched({
+  email: true,
+  password: false,
+})
+
+const [email, emailAttrs] = defineField('email', {
+  validateOnModelUpdate: false,
+})
+const [password, passwordAttrs] = defineField('password', {
+  validateOnBlur: true,
+  validateOnChange: false,
+  validateOnModelUpdate: false,
+})
+
+async function login(): Promise<void> {
+  const { valid } = await validate()
+  if (!valid)
+    return
+
+  const requestLoginData = {
+    email: email.value,
+    password: password.value,
+  }
+
+  isLoading.value = true
+  await authStore.login(requestLoginData)
+
+  if (authStore.error) {
+    console.error(authStore.error)
+  }
+
+  // if (authStore.isAuthenticated) {
+  //   await router.push('/')
+  // }
+
+  isLoading.value = false
+}
+
+// function handleKeydown(e: KeyboardEvent): void {
+//   if (e.key === 'Enter') {
+//     login()
+//   }
+// }
 </script>
 
 <template>
-  <form class=" flex-col flex items-center justify-center space-y-6">
-    <h1 class="text-2xl font-bold ">
+  <form class=" flex-col flex items-center justify-center ">
+    <h1 class="text-2xl font-bold mb-2">
       Авторизация
     </h1>
-    <h2 class="text-lg dark:text-gray-400 ">
+    <h2 class="text-lg dark:text-gray-400 mb-6">
       Еще нет аккаунта?
       <router-link class="text-cyan-400" to="/auth/register">
         Зарегистрируйся
       </router-link>
     </h2>
-    <div class="flex flex-col gap-2 w-full">
-      <label for="username">Электронная почта</label>
-      <InputText id="username" />
+    <div class="space-y-6 flex flex-col w-full mb-8">
+      <div class="relative flex flex-col gap-2 w-full">
+        <label for="username">Электронная почта</label>
+        <InputText
+          id="username"
+          v-model="email"
+          v-bind="emailAttrs"
+          :invalid="!!errors.email"
+        />
+        <small class="absolute bottom-[-16px] left-1 w-full text-[10px] text-red-500">
+          {{
+            errors.email
+          }}
+        </small>
+      </div>
+
+      <div class="relative flex flex-col gap-2 w-full">
+        <label for="password">Пароль</label>
+        <Password
+          id="password" v-model="password" v-bind="passwordAttrs"
+          :invalid="!!errors.password" :feedback="false" toggle-mask :pt="{ pcInputText: { root: 'w-full' } }"
+        />
+        <small class="absolute bottom-[-16px] left-1 w-full text-[10px] text-red-500">
+          {{
+            errors.password
+          }}
+        </small>
+      </div>
     </div>
 
-    <div class="flex flex-col gap-2 w-full">
-      <label for="password">Пароль</label>
-      <InputText id="password" />
-    </div>
-
-    <Button label="Продолжить" rounded icon="pi pi-arrow-right !mt-1" icon-pos="right" class="w-full " />
+    <Button label="Продолжить" rounded icon="pi pi-arrow-right !mt-1" icon-pos="right" class="w-full" @click="login()" />
 
     <Divider :pt="{ content: '!bg-inherit mb-1' }" align="center">
       <b>Или</b>
