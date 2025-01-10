@@ -3,6 +3,7 @@ import { useForm } from 'vee-validate'
 import { object, string } from 'yup'
 import { useAuthStore } from '../store'
 
+const router = useRouter()
 const authStore = useAuthStore()
 
 const isLoading = ref(false)
@@ -46,22 +47,22 @@ async function login(): Promise<void> {
     console.error(authStore.error)
   }
 
-  // if (authStore.isAuthenticated) {
-  //   await router.push('/')
-  // }
+  if (authStore.isAuthenticated) {
+    await router.push('/')
+  }
 
   isLoading.value = false
 }
 
-// function handleKeydown(e: KeyboardEvent): void {
-//   if (e.key === 'Enter') {
-//     login()
-//   }
-// }
+function handleKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Enter') {
+    login()
+  }
+}
 </script>
 
 <template>
-  <form class=" flex-col flex items-center justify-center ">
+  <form class=" flex-col flex items-center justify-center " @keydown="handleKeydown">
     <h1 class="text-2xl font-bold mb-2">
       Авторизация
     </h1>
@@ -101,7 +102,7 @@ async function login(): Promise<void> {
       </div>
     </div>
 
-    <Button label="Продолжить" rounded icon="pi pi-arrow-right !mt-1" icon-pos="right" class="w-full" @click="login()" />
+    <Button :loading="isLoading" label="Продолжить" rounded icon="pi pi-arrow-right !mt-1" icon-pos="right" class="w-full" @keydown="handleKeydown" @click="login()" />
 
     <Divider :pt="{ content: '!bg-inherit mb-1' }" align="center">
       <b>Или</b>

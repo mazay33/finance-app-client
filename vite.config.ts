@@ -44,6 +44,10 @@ export default defineConfig({
           src: 'src/modules/auth/pages',
           path: 'auth/',
         },
+        {
+          src: 'src/modules/dashboard/pages',
+          path: 'dashboard/',
+        },
       ],
     }),
 
