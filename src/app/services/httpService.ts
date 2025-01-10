@@ -1,11 +1,7 @@
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
-// import { useAuthStore } from '@/modules/auth'
+import { useAuthStore } from '@/modules/auth'
 import axios from 'axios'
-
-// import { abortControllerManager } from '../utils/AbortControllerManager'
-
-// import { ExpiringStorage } from '../utils/ExpiringStorage'
 
 // Интерфейс для конфигурации сервиса
 interface HttpServiceConfig {
@@ -32,9 +28,9 @@ export class HttpService {
   constructor(config: HttpServiceConfig = {}) {
     this.defaultConfig = {
       baseURL: import.meta.env.VITE_API_URL,
-      timeout: config.timeout || 40000, // TODO: Потом уменьшить время ожидания
+      timeout: config.timeout || 20000,
       headers: config.headers || { 'Content-Type': 'application/json' },
-      withCredentials: config.withCredentials || false,
+      withCredentials: true,
     }
 
     this.axiosInstance = axios.create(this.defaultConfig)
@@ -46,23 +42,15 @@ export class HttpService {
 
   // Метод для обработки запроса перед его отправкой
   private handleRequest(config: CustomAxiosInternalRequestConfig): CustomAxiosInternalRequestConfig | Promise<CustomAxiosInternalRequestConfig> {
-    if (!config.skipAbortSignal) {
-      // const controller = abortControllerManager.createController()
-      // config.signal = controller.signal
-    }
+    // if (!config.skipAbortSignal) {
+    // const controller = abortControllerManager.createController()
+    // config.signal = controller.signal
+    // }
 
-    // if (config.url?.includes('/auth/refresh')) {
-    //   const refreshToken = this.getRefreshToken()
-    //   if (refreshToken) {
-    //     config.headers.Authorization = `${refreshToken}`
-    //   }
-    // }
-    // else {
-    //   const token = this.getAuthToken()
-    //   if (token) {
-    //     config.headers.Authorization = `${token}`
-    //   }
-    // }
+    const { accessToken } = useAuthStore()
+    if (accessToken) {
+      config.headers.Authorization = `${accessToken}`
+    }
     return config
   }
 
@@ -96,12 +84,8 @@ export class HttpService {
         this.isRefreshing = true
 
         try {
-          // const refreshToken = this.getRefreshToken()
-          // if (!refreshToken) {
-          //   throw new Error('Нет рефреш токена')
-          // }
-          // const authStore = useAuthStore()
-          // await authStore.refreshToken(refreshToken)
+          const authStore = useAuthStore()
+          await authStore.refresh()
 
           this.isRefreshing = false
 
@@ -130,14 +114,6 @@ export class HttpService {
 
     return Promise.reject(error)
   }
-
-  // private getAuthToken(): string | null {
-  //   return ExpiringStorage.get('access_token') || null
-  // }
-
-  // private getRefreshToken(): string | null {
-  //   return ExpiringStorage.get('refresh_token') || null
-  // }
 
   // Основные методы для выполнения запросов
   public get<ResData = unknown>(url: string, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
