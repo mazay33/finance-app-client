@@ -1,6 +1,6 @@
 import type { IApiError } from '@/app/utils'
 
-import type { ILoginRequestData } from '../types'
+import type { ILoginRequestData, IRegisterRequestData } from '../types'
 import { useApiService } from '@/app/services'
 import { useUserStore } from '@/app/store'
 import { defineStore } from 'pinia'
@@ -48,6 +48,14 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = response.value.data.accessToken
   }
 
+  const register = async (data: IRegisterRequestData): Promise<void> => {
+    const response = await apiService.auth.register(data)
+
+    if (response.isError()) {
+      router.push('/auth/login')
+    }
+  }
+
   // const refreshToken = async (token: string): Promise<void> => {
   //   const response = await apiService.auth.refreshToken(token)
 
@@ -92,6 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     login,
+    register,
     isAuthenticated,
     error,
     getMe,
