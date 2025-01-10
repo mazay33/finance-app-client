@@ -7,17 +7,29 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppNavbar: typeof import('./src/app/components/AppNavbar.vue')['default']
+    AppPage: typeof import('./src/app/components/AppPage.vue')['default']
+    AppPanel: typeof import('./src/app/components/AppPanel.vue')['default']
+    AppPanelContent: typeof import('./src/app/components/AppPanelContent.vue')['default']
+    AppSidebar: typeof import('./src/app/components/AppSidebar.vue')['default']
+    AppToolbar: typeof import('./src/app/components/AppToolbar.vue')['default']
+    Avatar: typeof import('primevue/avatar')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
+    DatePicker: typeof import('primevue/datepicker')['default']
     Divider: typeof import('primevue/divider')['default']
-    FloatLabel: typeof import('primevue/floatlabel')['default']
+    IconField: typeof import('primevue/iconfield')['default']
+    InputIcon: typeof import('primevue/inputicon')['default']
     InputText: typeof import('primevue/inputtext')['default']
     LoginForm: typeof import('./src/modules/auth/components/LoginForm.vue')['default']
-    Message: typeof import('primevue/message')['default']
+    PanelMenu: typeof import('primevue/panelmenu')['default']
+    Password: typeof import('primevue/password')['default']
+    RegisterForm: typeof import('./src/modules/auth/components/RegisterForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TheCounter: typeof import('./src/components/TheCounter.vue')['default']
-    TheFooter: typeof import('./src/components/TheFooter.vue')['default']
-    TheInput: typeof import('./src/components/TheInput.vue')['default']
+    UiDatePicker: typeof import('./src/app/components/ui/UiDatePicker.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    Ripple: typeof import('primevue/ripple')['default']
   }
 }
