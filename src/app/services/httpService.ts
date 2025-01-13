@@ -47,10 +47,11 @@ export class HttpService {
     // config.signal = controller.signal
     // }
 
-    const { accessToken } = useAuthStore()
-    if (accessToken) {
-      config.headers.Authorization = `${accessToken}`
+    const authStore = useAuthStore()
+    if (authStore.accessToken) {
+      config.headers.Authorization = `${authStore.accessToken}`
     }
+
     return config
   }
 
@@ -65,7 +66,7 @@ export class HttpService {
   private async handleError(error: AxiosError): Promise<AxiosResponse | void> {
     const originalRequest = error.config as CustomAxiosInternalRequestConfig
 
-    if (error.config?.url?.includes('/auth/refresh') && error.response?.status === 401) {
+    if (error.config?.url?.includes('auth/refresh-tokens') && error.response?.status === 401) {
       throw error
     }
 
