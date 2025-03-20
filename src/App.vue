@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import AuthLayout from './app/layouts/AuthLayout.vue'
+import MainLayout from './app/layouts/MainLayout.vue'
+
 import { useAuthStore } from './modules/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()
 
-const MainLayout = shallowRef()
+// const MainLayout = shallowRef()
 const isAuthChecked = ref(false)
 const isLoading = ref(true)
 
@@ -31,13 +33,13 @@ async function waitForAuthStatus(timeout = 20000, interval = 100): Promise<void>
   })
 }
 
-watchEffect(async () => {
-  if (authStore.isAuthenticated) {
-    MainLayout.value = defineAsyncComponent(() => import('@/app/layouts/MainLayout.vue'))
+// watchEffect(async () => {
+//   if (authStore.isAuthenticated) {
+//     MainLayout.value = defineAsyncComponent(() => import('@/app/layouts/MainLayout.vue'))
 
-    layouts.MainLayout = MainLayout.value
-  }
-})
+//     layouts.MainLayout = MainLayout.value
+//   }
+// })
 
 const layout = computed(() => {
   const layoutKey = route.meta.layout as keyof typeof layouts
