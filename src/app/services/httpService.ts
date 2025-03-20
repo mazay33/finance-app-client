@@ -1,6 +1,9 @@
-import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { MaybeRef } from 'vue'
+import type { UseAxiosOptions, UseAxiosReturn } from '../composables/useAxios'
 
 import { useAuthStore } from '@/modules/auth'
+
 import axios from 'axios'
 
 // Интерфейс для конфигурации сервиса
@@ -16,8 +19,13 @@ interface CustomAxiosInternalRequestConfig extends InternalAxiosRequestConfig {
   skipAbortSignal?: boolean
 }
 
-export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
-  skipAbortSignal?: boolean
+export type HttpBodyType<T> = T extends Ref<Record<string, any>> ? T : Record<string, any>
+export enum HttpMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+  PATCH = 'PATCH',
 }
 
 // Основной HttpService класс
@@ -42,11 +50,6 @@ export class HttpService {
 
   // Метод для обработки запроса перед его отправкой
   private handleRequest(config: CustomAxiosInternalRequestConfig): CustomAxiosInternalRequestConfig | Promise<CustomAxiosInternalRequestConfig> {
-    // if (!config.skipAbortSignal) {
-    // const controller = abortControllerManager.createController()
-    // config.signal = controller.signal
-    // }
-
     const authStore = useAuthStore()
     if (authStore.accessToken) {
       config.headers.Authorization = `${authStore.accessToken}`
@@ -62,7 +65,6 @@ export class HttpService {
 
   private isRefreshing: boolean = false // Flag to prevent multiple refresh requests
   private refreshFailed: boolean = false // Flag to prevent infinite retry loops
-
   private async handleError(error: AxiosError): Promise<AxiosResponse | void> {
     const originalRequest = error.config as CustomAxiosInternalRequestConfig
 
@@ -116,25 +118,39 @@ export class HttpService {
     return Promise.reject(error)
   }
 
+  private request<ResT, ReqT = unknown>(
+    method: HttpMethod,
+    url: MaybeRef<string>,
+    config: UseAxiosOptions<ReqT, ResT> = {},
+  ): UseAxiosReturn<ResT> {
+    const mergedConfig: UseAxiosOptions<ReqT, ResT> = {
+      method,
+      ...config,
+      ...this.defaultConfig,
+    }
+
+    return useAxios<ResT, ReqT>(url, mergedConfig, this.axiosInstance)
+  }
+
   // Основные методы для выполнения запросов
-  public get<ResData = unknown>(url: string, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
-    return this.axiosInstance.get<ResData>(url, config)
+  public get<ResT = unknown>(url: MaybeRef<string>, config?: UseAxiosOptions<never, ResT>): UseAxiosReturn<ResT> {
+    return this.request<ResT>(HttpMethod.GET, url, config)
   }
 
-  public post<ResData = unknown, ReqData = unknown>(url: string, data?: ReqData, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
-    return this.axiosInstance.post<ResData, AxiosResponse<ResData>, ReqData>(url, data, config)
+  public post<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+    return this.request<ResT, ReqT>(HttpMethod.POST, url, { data, ...config })
   }
 
-  public put<ResData = unknown, ReqData = unknown>(url: string, data?: ReqData, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
-    return this.axiosInstance.put<ResData, AxiosResponse<ResData>, ReqData>(url, data, config)
+  public put<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+    return this.request<ResT, ReqT>(HttpMethod.PUT, url, { data, ...config })
   }
 
-  public patch<ResData = unknown, ReqData = unknown>(url: string, data?: ReqData, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
-    return this.axiosInstance.patch<ResData, AxiosResponse<ResData>, ReqData>(url, data, config)
+  public patch<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+    return this.request<ResT, ReqT>(HttpMethod.PATCH, url, { data, ...config })
   }
 
-  public delete<ResData = unknown>(url: string, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<ResData>> {
-    return this.axiosInstance.delete<ResData>(url, config)
+  public delete<ResT = unknown>(url: string, config?: UseAxiosOptions<never, ResT>): UseAxiosReturn<ResT> {
+    return this.request<ResT>(HttpMethod.DELETE, url, config)
   }
 
   // Метод для обновления конфигурации сервиса

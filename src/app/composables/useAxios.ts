@@ -1,38 +1,53 @@
-import type { AxiosError, AxiosRequestConfig, CancelTokenSource } from 'axios'
-import axios from 'axios'
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, CancelTokenSource } from 'axios'
 
-export interface UseAxiosOptions<ReqT> extends AxiosRequestConfig<ReqT> {
+import axios from 'axios'
+import { computed, type MaybeRef, ref, type ShallowRef, shallowRef, toValue, watch } from 'vue'
+
+export interface UseAxiosOptions<ReqT, ResT> extends AxiosRequestConfig<ReqT> {
   immediate?: boolean
-  lazy?: boolean
   watch?: MaybeRef<any>[]
   cancelPrevious?: boolean
+  deepWatch?: boolean
+  transform?: (data: ResT) => any
 }
 
-export interface UseAxiosReturn<ResT> {
-  data: Ref<ResT | undefined>
-  error: Ref<AxiosError | undefined>
-  loading: Ref<boolean>
+export interface UseAxiosReturn<TransformedT> {
+  data: ShallowRef<TransformedT | undefined>
+  error: ShallowRef<AxiosError | undefined>
+  loading: Readonly<Ref<boolean>>
   execute: (config?: AxiosRequestConfig) => Promise<void>
   cancel: (message?: string) => void
 }
 
-export function useAxios<ResT = unknown, ReqT = unknown>(
+export function useAxios<ResT = unknown, ReqT = unknown, TransformedT = ResT>(
   url: MaybeRef<string>,
-  options: UseAxiosOptions<ReqT> = {},
-): UseAxiosReturn<ResT> {
+  options: UseAxiosOptions<ReqT, ResT> & { transform?: (data: ResT) => TransformedT } = {},
+  axiosInstance: AxiosInstance = axios,
+): UseAxiosReturn<TransformedT> {
   const {
     immediate = true,
-    lazy = false,
     cancelPrevious = true,
+    deepWatch = true,
+    watch: watchSourcesOption = [],
+    transform,
     ...axiosOptions
   } = options
 
-  const data = ref<ResT>()
-  const error = ref<AxiosError>()
+  const data = shallowRef<TransformedT>()
+  const error = shallowRef<AxiosError>()
   const loading = ref(false)
   let cancelTokenSource: CancelTokenSource | null = null
 
-  const execute = async (overrideConfig: AxiosRequestConfig = {}) => {
+  const resolvedConfig = computed(() => ({
+    url: toValue(url),
+    method: axiosOptions.method || 'GET',
+    params: toValue(axiosOptions.params),
+    data: toValue(axiosOptions.data),
+    headers: toValue(axiosOptions.headers),
+    baseURL: axiosOptions.baseURL,
+  }))
+
+  const execute = async (overrideConfig: AxiosRequestConfig = {}): Promise<void> => {
     try {
       if (cancelPrevious && cancelTokenSource) {
         cancelTokenSource.cancel('Request canceled by new execution')
@@ -40,22 +55,15 @@ export function useAxios<ResT = unknown, ReqT = unknown>(
 
       loading.value = true
       error.value = undefined
-
       cancelTokenSource = axios.CancelToken.source()
 
-      const finalConfig: AxiosRequestConfig = {
-        baseURL: axiosOptions.baseURL,
-        method: axiosOptions.method || 'GET',
-        params: toValue(axiosOptions.params),
-        url: toValue(url),
-        data: toValue(axiosOptions.data),
-        headers: toValue(axiosOptions.headers),
-        cancelToken: cancelTokenSource.token,
+      const response = await axiosInstance.request<ResT>({
+        ...resolvedConfig.value,
         ...overrideConfig,
-      }
+        cancelToken: cancelTokenSource.token,
+      })
 
-      const response = await axios.request<ResT>(finalConfig)
-      data.value = response.data
+      data.value = transform ? transform(response.data) : response.data as unknown as TransformedT
     }
     catch (e) {
       if (!axios.isCancel(e)) {
@@ -67,31 +75,28 @@ export function useAxios<ResT = unknown, ReqT = unknown>(
     }
   }
 
-  const cancel = (message = 'Request canceled') => {
-    if (cancelTokenSource) {
-      cancelTokenSource.cancel(message)
-    }
+  const cancel = (message = 'Request canceled'): void => {
+    cancelTokenSource?.cancel(message)
   }
 
-  const watchSources = [
-    axiosOptions.url,
-    axiosOptions.params,
-    axiosOptions.data,
-    ...(axiosOptions.watch || []),
-  ].filter(Boolean)
-
-  if (immediate && !lazy) {
+  if (immediate) {
     execute()
   }
 
-  watch(watchSources, () => {
-    execute()
-  }, { deep: true })
+  const watchSources = [...watchSourcesOption].filter(Boolean)
+
+  watch(
+    watchSources,
+    async () => {
+      await execute()
+    },
+    { deep: deepWatch },
+  )
 
   return {
     data,
     error,
-    loading,
+    loading: loading as Readonly<Ref<boolean>>,
     execute,
     cancel,
   }
