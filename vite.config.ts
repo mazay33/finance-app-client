@@ -48,6 +48,10 @@ export default defineConfig({
           src: 'src/modules/dashboard/pages',
           path: 'dashboard/',
         },
+        {
+          src: 'src/modules/account/pages',
+          path: 'account/',
+        },
       ],
     }),
 
