@@ -8,6 +8,11 @@ const items = ref([
     icon: 'pi pi-home',
     route: '/',
   },
+  {
+    label: 'Счета',
+    icon: 'pi pi-wallet',
+    route: '/account',
+  },
 
   {
     label: 'Настройки',

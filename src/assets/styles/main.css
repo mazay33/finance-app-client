@@ -7,3 +7,41 @@
     @apply dark:bg-[#111827] dark:text-white/90;
   }
 }
+/* Scrollbar */
+/* TODO: scrollbar для темной темы */
+::-webkit-scrollbar {
+  background-color: transparent;
+  height: 0.6em;
+  width: 0.6em;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 0.6em;
+  --tw-bg-opacity: 1;
+  background-color: var(--p-gray-300);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  --tw-bg-opacity: 1;
+  background-color: var(--p-gray-300);
+}
+::-webkit-scrollbar-track {
+  --tw-bg-opacity: 1;
+  background-color: var(--p-gray-100);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  border-radius: 0.6em;
+  --twbody-opacity: 1;
+  background-color: var(--p-gray-700);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  --twbody-opacity: 1;
+  background-color: var(--p-gray-700);
+}
+
+.dark ::-webkit-scrollbar-track {
+  --tw-bg-opacity: 1;
+  background-color: var(--p-gray-800);
+}
