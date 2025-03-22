@@ -6,4 +6,4 @@ export enum AccountType {
   INVESTMENT = 'INVESTMENT',
   RECEIVABLES = 'RECEIVABLES',
   PAYABLES = 'PAYABLES',
-};
+}
