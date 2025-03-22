@@ -121,15 +121,15 @@ export class HttpService {
   private request<ResT, ReqT = unknown>(
     method: HttpMethod,
     url: MaybeRef<string>,
-    config: UseAxiosOptions<ReqT, ResT> = {},
+    config: UseAxiosOptions<MaybeRef<ReqT>, ResT> = {},
   ): UseAxiosReturn<ResT> {
-    const mergedConfig: UseAxiosOptions<ReqT, ResT> = {
+    const mergedConfig: UseAxiosOptions<MaybeRef<ReqT>, ResT> = {
       method,
       ...config,
       ...this.defaultConfig,
     }
 
-    return useAxios<ResT, ReqT>(url, mergedConfig, this.axiosInstance)
+    return useAxios<ResT, MaybeRef<ReqT>>(url, mergedConfig, this.axiosInstance)
   }
 
   // Основные методы для выполнения запросов
@@ -137,15 +137,15 @@ export class HttpService {
     return this.request<ResT>(HttpMethod.GET, url, config)
   }
 
-  public post<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+  public post<ResT = unknown, ReqT = unknown>(url: string, data: MaybeRef<ReqT>, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
     return this.request<ResT, ReqT>(HttpMethod.POST, url, { data, ...config })
   }
 
-  public put<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+  public put<ResT = unknown, ReqT = unknown>(url: string, data: MaybeRef<ReqT>, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
     return this.request<ResT, ReqT>(HttpMethod.PUT, url, { data, ...config })
   }
 
-  public patch<ResT = unknown, ReqT = unknown>(url: string, data: ReqT, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
+  public patch<ResT = unknown, ReqT = unknown>(url: string, data: MaybeRef<ReqT>, config?: UseAxiosOptions<ReqT, ResT>): UseAxiosReturn<ResT> {
     return this.request<ResT, ReqT>(HttpMethod.PATCH, url, { data, ...config })
   }
 

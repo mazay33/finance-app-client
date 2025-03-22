@@ -37,7 +37,7 @@ export class BaseApiService<
   }
 
   public create(
-    data: CreateRequest,
+    data: MaybeRef<CreateRequest>,
     config?: UseAxiosOptions<CreateRequest, T>,
   ): UseAxiosReturn<T> {
     const url = this.getUrl('')
@@ -46,7 +46,7 @@ export class BaseApiService<
 
   public update(
     id: string,
-    data: UpdateRequest,
+    data: MaybeRef<UpdateRequest>,
     config?: UseAxiosOptions<UpdateRequest, T>,
   ): UseAxiosReturn<T> {
     const url = this.getUrl(id)
@@ -55,9 +55,9 @@ export class BaseApiService<
 
   public delete(
     id: string,
-    config?: UseAxiosOptions<never, void>,
-  ): UseAxiosReturn<void> {
+    config?: UseAxiosOptions<never, T>,
+  ): UseAxiosReturn<T> {
     const url = this.getUrl(id)
-    return this.httpService.delete<void>(url, config)
+    return this.httpService.delete<T>(url, config)
   }
 }
