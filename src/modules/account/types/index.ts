@@ -4,10 +4,10 @@ export interface IAccount {
   id: string
   name: string
   balance: string
-  accountTypeId: string
+  type: AccountType
   description: string
   isActive: boolean
-  currency: string
+  currency: Currency
   createdAt: string
   updatedAt: string
   userId: string
@@ -27,7 +27,7 @@ export interface IAccountQuery {
 
 export interface IAccountCreateData {
   name: string
-  accountTypeId: string
+  type: AccountType
   description: string
   currency: Currency
   balance: string
