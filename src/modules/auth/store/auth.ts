@@ -13,39 +13,42 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<IApiError>()
 
   const getMe = async (): Promise<void> => {
-    const response = await apiService.auth.me()
-
-    if (response.isError()) {
+    const { data, error, execute } = await apiService.auth.me({ immediate: false })
+    await execute()
+    if (error.value) {
       router.push('/auth/login')
       return
     }
 
     const userStore = useUserStore()
-    userStore.setUser(response.value.data)
+    if (data.value) {
+      userStore.setUser(data.value)
+    }
   }
 
   const login = async (data: ILoginRequestData): Promise<void> => {
-    const response = await apiService.auth.login(data)
-
-    if (response.isError()) {
-      error.value = response.error
+    const { data: token, error, execute } = apiService.auth.login(data, { immediate: false })
+    await execute()
+    if (error.value) {
       return
     }
+    accessToken.value = token.value?.accessToken
 
-    accessToken.value = response.value.data.accessToken
-
-    await getMe()
+    getMe()
   }
 
   const refresh = async (): Promise<void> => {
-    const response = await apiService.auth.refresh()
-
-    if (response.isError()) {
+    const { data, error, execute } = apiService.auth.refresh({ immediate: false })
+    await execute()
+    if (error.value) {
       router.push('/auth/login')
       return
     }
 
-    accessToken.value = response.value.data.accessToken
+    if (!data.value)
+      return
+
+    accessToken.value = data.value?.accessToken
   }
 
   // const refreshToken = async (token: string): Promise<void> => {
