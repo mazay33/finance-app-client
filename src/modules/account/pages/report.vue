@@ -1,9 +1,8 @@
 <script setup lang="ts">
-
 </script>
 
 <template>
-  <AccountView />
+  <AccountReportView />
 </template>
 
 <style scoped>

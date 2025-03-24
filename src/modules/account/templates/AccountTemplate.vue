@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormMode } from '@/app/types'
-import type { IAccount } from '../types'
+import type { IAccount } from '@/modules/account/types'
 
 const isAccountFormDialogVisible = ref<boolean>(false)
 const accountFormMode = ref<FormMode>()
@@ -38,7 +38,8 @@ async function updateAccountList(): Promise<void> {
 
 <template>
   <AppPage>
-    <AppPanel :collapsible="false" :width="450">
+    <Toast />
+    <AppPanel :resizable="{ min: 370, max: 500 }" :collapsible="true" :width="450">
       <AppNavbar title="Счета">
         <template #right>
           <Button
@@ -74,6 +75,7 @@ async function updateAccountList(): Promise<void> {
           />
           <Button
             label="Сохранить"
+            :loading="accountFormRef?.isLoading"
             icon="pi pi-check"
             @click="handleSave"
           />
@@ -88,15 +90,17 @@ async function updateAccountList(): Promise<void> {
     </AppPanel>
 
     <AppPanel grow :collapsible="false" :width="100">
-      <AppNavbar title="Главная">
+      <AppNavbar title="Транзакции">
         <template #right>
           <Button rounded icon="pi pi-bell" />
         </template>
       </AppNavbar>
+
+      <AppPanelContent>
+        <AppErrorBoundary>
+          <slot />
+        </AppErrorBoundary>
+      </AppPanelContent>
     </AppPanel>
   </AppPage>
 </template>
-
-<style scoped>
-/* Стили при необходимости */
-</style>
