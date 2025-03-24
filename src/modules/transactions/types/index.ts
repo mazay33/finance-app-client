@@ -1,4 +1,5 @@
 import type { TransactionType } from '@/app/commom'
+import type { IAccount } from '@/modules/account/types'
 
 export interface ITransaction {
   id: string
@@ -10,6 +11,10 @@ export interface ITransaction {
   date: string
   categoryId: string
   accountId: string
+  category: { // TODO: category type
+    name: string
+  }
+  account: Pick<IAccount, 'name' | 'type' | 'currency'>
 }
 
 export type TranscationSortByAllowed = keyof ITransaction
