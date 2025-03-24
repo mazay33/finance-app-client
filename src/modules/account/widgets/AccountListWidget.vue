@@ -15,7 +15,7 @@ const BASE_CURRENCY: Currency = Currency.RUB
 const apiService = useApiService()
 
 // Получаем список счетов
-const { data: accounts, execute: getAccountlist, error: accountListError } = apiService.account.getList()
+const { data: accounts, execute: getAccountlist, error: accountListError, loading: accountListLoading } = apiService.account.getList()
 
 defineExpose({ getAccountlist })
 
@@ -65,9 +65,11 @@ const totalInSelectedCurrency = computed(() => {
 <!-- eslint-disable vue/custom-event-name-casing -->
 <template>
   <div class="flex items-center justify-between mb-6">
-    <div class="text-lg font-semibold">
-      Общий баланс:
+    <div class="text-lg font-semibold flex items-center gap-2">
+      <span>Общий баланс:</span>
+      <Skeleton v-if="accountListLoading" width="80px" height="24px" />
       <span
+        v-else
         :class="{
           'text-green-500': totalInSelectedCurrency > 0,
           'text-red-500': totalInSelectedCurrency < 0,
@@ -99,7 +101,10 @@ const totalInSelectedCurrency = computed(() => {
       </template>
     </Select>
   </div>
-  <Accordion :value="Object.keys(groupedAccountsWithTotals)" multiple>
+  <template v-if="accountListLoading">
+    <Skeleton v-for="i in 5" :key="i" class="mb-4" height="60px" />
+  </template>
+  <Accordion v-else :value="Object.keys(groupedAccountsWithTotals)" multiple>
     <AccordionPanel
       v-for="[type, group] in Object.entries(groupedAccountsWithTotals)"
       :key="type"
