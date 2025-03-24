@@ -21,6 +21,9 @@ const emit = defineEmits<Emits>()
 const apiService = useApiService()
 const toast = useToast()
 
+const isLoading = ref(false)
+const showDeleteDialog = ref(false)
+
 const accountState = reactive({
   id: '',
   name: '',
@@ -32,6 +35,7 @@ const accountState = reactive({
 })
 
 async function createAccount(): Promise<{ success: boolean, error?: any }> {
+  isLoading.value = true
   const data: IAccountCreateData = {
     name: accountState.name,
     description: accountState.description,
@@ -41,8 +45,9 @@ async function createAccount(): Promise<{ success: boolean, error?: any }> {
     isActive: accountState.isActive,
   }
 
-  const { error, execute } = apiService.account.create(data, { immediate: false })
+  const { error, execute, loading } = apiService.account.create(data, { immediate: false })
   await execute()
+  isLoading.value = loading.value
 
   if (error.value) {
     return { success: false, error: error.value }
@@ -64,8 +69,9 @@ async function updateAccount(): Promise<{ success: boolean, error?: any }> {
     isActive: accountState.isActive,
   }
 
-  const { error, execute } = apiService.account.update(accountState.id, data, { immediate: false })
+  const { error, execute, loading } = apiService.account.update(accountState.id, data, { immediate: false })
   await execute()
+  isLoading.value = loading.value
 
   return error.value ? { success: false, error } : { success: true }
 }
@@ -73,12 +79,16 @@ async function updateAccount(): Promise<{ success: boolean, error?: any }> {
 async function deleteAccount(): Promise<void> {
   if (!accountState.id)
     return
+  isLoading.value = true
 
-  const { error, execute } = apiService.account.delete(accountState.id, { immediate: false })
+  const { error, execute, loading } = apiService.account.delete(accountState.id, { immediate: false })
   await execute()
+  isLoading.value = loading.value
+
+  showDeleteDialog.value = false // Закрываем диалог
 
   if (error.value) {
-    toast.add ({
+    toast.add({
       severity: 'error',
       summary: 'Ошибка',
       detail: error.value.message || 'Неизвестная ошибка',
@@ -89,8 +99,8 @@ async function deleteAccount(): Promise<void> {
 
   toast.add({
     severity: 'success',
-    summary: 'Успех!',
-    detail: 'Счёт удалён',
+    summary: 'Успешно!',
+    detail: `Счёт ${accountState.name} удалён`,
     life: 3000,
   })
 
@@ -114,7 +124,7 @@ async function submit(): Promise<void> {
     toast.add({
       severity: 'success',
       summary: 'Успех!',
-      detail: props.mode === 'update' ? 'Счёт обновлён' : 'Счёт создан',
+      detail: props.mode === 'update' ? `Счёт ${accountState.name} обновлён` : `Счёт ${accountState.name} создан`,
       life: 3000,
     })
     emit('@success')
@@ -146,6 +156,7 @@ defineExpose({
   submit,
   cancel,
   setAccountData,
+  isLoading,
 })
 </script>
 
@@ -161,7 +172,7 @@ defineExpose({
           class="w-full"
         />
         <label for="name">
-          Название счёта *
+          Название счёта
         </label>
       </FloatLabel>
     </div>
@@ -186,7 +197,7 @@ defineExpose({
           </template>
         </Select>
         <label for="type">
-          Тип счёта *
+          Тип счёта
         </label>
       </FloatLabel>
     </div>
@@ -213,13 +224,13 @@ defineExpose({
           </template>
         </Select>
         <label for="currency">
-          Валюта *
+          Валюта
         </label>
       </FloatLabel>
     </div>
 
     <!-- Начальный баланс -->
-    <div class="field">
+    <div v-if="props.mode === 'create'" class="field">
       <FloatLabel>
         <InputNumber
           id="balance"
@@ -257,10 +268,45 @@ defineExpose({
     </div>
 
     <!-- Кнопки -->
-    <Button v-if="mode === 'update'" class="mb-4" label="Удалить счёт" icon="pi pi-trash" outlined severity="danger" @click="deleteAccount" />
+    <Button
+      v-if="mode === 'update'"
+      :loading="isLoading"
+      class="mb-4"
+      label="Удалить счёт"
+      icon="pi pi-trash"
+      outlined
+      severity="danger"
+      @click="showDeleteDialog = true"
+    />
+
+    <Dialog
+      v-model:visible="showDeleteDialog"
+      header="Подтверждение удаления"
+      :modal="true"
+      :style="{ width: '25%' }"
+    >
+      <div class="flex items-center gap-3">
+        <i class="pi pi-exclamation-triangle !text-3xl" />
+        <span>Вы уверены, что хотите удалить счёт <b>{{ accountState.name }}</b>?</span>
+      </div>
+      <template #footer>
+        <Button
+          label="Нет"
+          icon="pi pi-times"
+          class="p-button-text"
+          @click="showDeleteDialog = false"
+        />
+        <Button
+          label="Да"
+          icon="pi pi-check"
+          class="p-button-danger"
+          :loading="isLoading"
+          @click="deleteAccount"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <style scoped>
-/* Стили при необходимости */
 </style>
